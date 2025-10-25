@@ -29,7 +29,7 @@ jobs:
               uses: actions/checkout@v3
 
             - name: Install Utilities
-              run:
+              run: |
                 sudo apt-get update
                 sudo apt-get install -y jq unzip
 
