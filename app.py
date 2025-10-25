@@ -47,9 +47,6 @@ app.add_middleware(
 from fastapi.templating import Jinja2Templates
 templates = Jinja2Templates(directory="./templates")
 
-from fastapi.templating import Jinja2Templates
-templates = Jinja2Templates(directory="./templates")
-
 
 @app.get("/", tags=["authentication"])
 async def index():
