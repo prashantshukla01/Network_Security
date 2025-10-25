@@ -10,4 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pip install python-multipart
+
 CMD ["python3", "app.py"]
