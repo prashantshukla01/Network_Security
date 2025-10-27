@@ -16,29 +16,56 @@ A Machine Learning project to detect network intrusions using a modular pipeline
 ## 📁 Project Structure
 
 ```bash
-Network-Security-ML-Pipeline/
+.
+├── .github/
+│   └── workflows/
+│       └── main.yml
 │
-├── src/
+├── data_schema/
+├── final_model/
+├── Network_Data/
+│
+├── networksecurity/
+│   ├── cloud/
+│   │   └── s3_syncer.py
+│   │
 │   ├── components/
 │   │   ├── data_ingestion.py
+│   │   ├── data_validation.py
 │   │   ├── data_transformation.py
 │   │   └── model_trainer.py
 │   │
-│   ├── pipeline/
-│   │   ├── training_pipeline.py
-│   │   └── prediction_pipeline.py
-│   │
-│   ├── utils/
-│   │   └── common.py
-│   │
 │   ├── constant/
-│   └── entity/
+│   │   └── training_pipeline/
+│   │       └── __init__.py
+│   │
+│   ├── entity/
+│   │   ├── config_entity.py
+│   │   └── artifact_entity.py
+│   │
+│   ├── exception/
+│   │   └── __init__.py
+│   │
+│   ├── logging/
+│   │   └── __init__.py
+│   │
+│   ├── pipeline/
+│   │   └── training_pipeline.py
+│   │
+│   └── utils/
+│       ├── main_utils.py
+│       └── ml_utils.py
 │
-├── artifacts/                 # Generated automatically
-├── app/
-│   └── main.py                # FastAPI app
+├── notebooks/
 │
+├── templates/
+│   └── index.html
+│
+├── app.py
+├── main.py
+├── push_data.py
 ├── requirements.txt
+├── setup.py
 └── README.md
 
 ```
