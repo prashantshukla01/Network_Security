@@ -43,7 +43,7 @@ jobs:
 
             - name: Login to Amazon ECR
               id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
+              uses: aws-actions/amazon-ecr-login@v2
 
             - name: Build, tag, and push image to Amazon ECR
               id: build-image
@@ -72,7 +72,7 @@ jobs:
 
             - name: Login to Amazon ECR
               id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
+              uses: aws-actions/amazon-ecr-login@v2
 
             - name: Stop and remove existing container
               run: |
