@@ -125,25 +125,54 @@
 
             <div class="col-md-8">
                 <div class="card">
-                    <div class="card-header">Network Data Analysis</div>
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab"
+                                    data-bs-target="#upload" type="button" role="tab">Upload CSV</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="scan-tab" data-bs-toggle="tab" data-bs-target="#scan"
+                                    type="button" role="tab">Scan URL</button>
+                            </li>
+                        </ul>
+                    </div>
                     <div class="card-body">
-                        <p>Upload your network data file (CSV format) for security threat analysis:</p>
-
-                        <!-- Modified Form handling with JS -->
-                        <form id="uploadForm">
-                            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
-                                <img src="https://cdn-icons-png.flaticon.com/512/61/61112.png" width="50" height="50"
-                                    alt="Upload">
-                                <h5 class="mt-3">Drag & Drop or Click to Upload</h5>
-                                <p class="text-muted">Supported format: CSV</p>
-                                <div id="uploadFileName"></div>
-                                <input type="file" id="fileInput" name="file" accept=".csv" style="display: none;"
-                                    onchange="updateFileName()">
+                        <div class="tab-content" id="myTabContent">
+                            <!-- Upload CSV Tab -->
+                            <div class="tab-pane fade show active" id="upload" role="tabpanel">
+                                <p>Upload your network data file (CSV format) for security threat analysis:</p>
+                                <form id="uploadForm">
+                                    <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                                        <img src="https://cdn-icons-png.flaticon.com/512/61/61112.png" width="50"
+                                            height="50" alt="Upload">
+                                        <h5 class="mt-3">Drag & Drop or Click to Upload</h5>
+                                        <p class="text-muted">Supported format: CSV</p>
+                                        <div id="uploadFileName"></div>
+                                        <input type="file" id="fileInput" name="file" accept=".csv"
+                                            style="display: none;" onchange="updateFileName()">
+                                    </div>
+                                    <button type="submit" id="analyzeBtn" class="btn btn-primary w-100" disabled>Analyze
+                                        Network Data</button>
+                                </form>
                             </div>
 
-                            <button type="submit" id="analyzeBtn" class="btn btn-primary w-100" disabled>Analyze Network
-                                Data</button>
-                        </form>
+                            <!-- Scan URL Tab -->
+                            <div class="tab-pane fade" id="scan" role="tabpanel">
+                                <p>Enter a website URL to scan for phishing threats:</p>
+                                <form id="scanForm">
+                                    <div class="mb-3">
+                                        <input type="url" class="form-control form-control-lg" id="urlInput"
+                                            placeholder="https://example.com" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Scan URL</button>
+                                </form>
+                                <div id="scanResult" class="mt-4 text-center" style="display:none;">
+                                    <h3>Result: <span id="scanStatus" class="badge"></span></h3>
+                                    <p id="scanUrlDisplay" class="text-muted"></p>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="loading" id="loadingIndicator">
                             <div class="spinner-border" role="status">
@@ -152,11 +181,11 @@
                             <p class="mt-2">Processing on AWS Server...</p>
                         </div>
 
-                        <!-- Results Container -->
                         <div id="resultContainer" class="mt-4" style="display:none;">
                             <h5>Analysis Results</h5>
                             <div id="resultContent" style="overflow-x: auto;"></div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -205,6 +234,47 @@
                 document.getElementById('resultContainer').style.display = 'block';
             } catch (error) {
                 alert('Detailed Error: ' + error.message + '\nNote: If hosting on HTTPS (Vercel), you cannot hit an HTTP backend. You need to setup SSL on EC2 or use HTTP for frontend.');
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        });
+
+        // Scan Form Handler
+        document.getElementById('scanForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('scanResult').style.display = 'none';
+            document.getElementById('resultContainer').style.display = 'none';
+
+            const url = document.getElementById('urlInput').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/predict_url`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+
+                if (!response.ok) throw new Error("Backend Error");
+
+                const data = await response.json();
+
+                const badge = document.getElementById('scanStatus');
+                badge.innerText = data.prediction;
+
+                if (data.prediction === "Phishing") {
+                    badge.classList.remove('bg-success');
+                    badge.classList.add('bg-danger');
+                } else {
+                    badge.classList.remove('bg-danger');
+                    badge.classList.add('bg-success');
+                }
+
+                document.getElementById('scanUrlDisplay').innerText = `Scan for: ${data.url}`;
+                document.getElementById('scanResult').style.display = 'block';
+
+            } catch (error) {
+                alert('Scan Failed: ' + error.message);
             } finally {
                 document.getElementById('loadingIndicator').style.display = 'none';
             }

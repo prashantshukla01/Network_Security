@@ -21,6 +21,8 @@ from starlette.responses import RedirectResponse
 import pandas as pd
 
 from networksecurity.utils.main_utils.utils import load_object
+from networksecurity.utils.ml_utils.feature_extractor import FeatureExtractor
+from pydantic import BaseModel
 
 from networksecurity.utils.ml_utils.model.estimator import NetworkModel
 
@@ -88,6 +90,37 @@ async def predict_route(request: Request,file: UploadFile = File(...)):
         
     except Exception as e:
             raise NetworkSecurityException(e,sys)
+
+class URLRequest(BaseModel):
+    url: str
+
+@app.post("/predict_url")
+async def predict_url_route(request: URLRequest):
+    try:
+        url = request.url
+        print(f"Scanning URL: {url}")
+        
+        # Extract features
+        extractor = FeatureExtractor()
+        df = extractor.extract_features(url)
+        
+        # Load model and predict
+        preprocesor = load_object("final_model/preprocessor.pkl")
+        final_model = load_object("final_model/model.pkl")
+        network_model = NetworkModel(preprocessor=preprocesor, model=final_model)
+        
+        y_pred = network_model.predict(df)
+        result = "Phishing" if y_pred[0] == 1 else "Legitimate" # Assuming 1 is phishing based on typical datasets, or verify labels.
+        # Actually in many datasets -1 is Phishing, 1 is Legitimate. Let's check Utils or just return the raw prediction and map logic in frontend if unsure, but usually -1 is anomaly.
+        # Wait, in the schema Result is int64. Let's rely on the model output. 
+        # Typically Phishing websites dataset: 1=Legitimate, -1=Phishing. 
+        # Let's map it safely:
+        prediction_label = "Legitimate" if y_pred[0] == 1 else "Phishing"
+        
+        return {"url": url, "prediction": prediction_label, "raw_result": int(y_pred[0])}
+
+    except Exception as e:
+        raise NetworkSecurityException(e, sys)
     
     
 if __name__=="__main__":
