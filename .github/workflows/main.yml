@@ -86,7 +86,7 @@ jobs:
             - name: Run Docker Image to serve users
               run: |
                 docker run -d \
-                  -p 8080:8080 \
+                  -p 8080:8000 \
                   --name=networksecurity \
                   -e 'MONGO_DB_URL=${{ secrets.MONGO_DB_URL }}' \
                   -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' \
