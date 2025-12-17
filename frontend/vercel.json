@@ -1,0 +1,9 @@
+{
+    "version": 2,
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "http://ec2-35-154-118-230.ap-south-1.compute.amazonaws.com:8080/:path*"
+        }
+    ]
+}
