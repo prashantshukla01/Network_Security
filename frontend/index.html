@@ -255,8 +255,10 @@
                     body: JSON.stringify({ url: url })
                 });
 
-                if (!response.ok) throw new Error("Backend Error");
-
+                if (!response.ok) {
+                    throw new Error(`Server Error: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
 
                 const badge = document.getElementById('scanStatus');
