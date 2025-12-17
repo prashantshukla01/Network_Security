@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetGuard AI | Next-Gen Network Security</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #0f172a;
+            --accent: #38bdf8;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--secondary);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: radial-gradient(circle at top right, #1e3a8a 0%, transparent 40%),
+                radial-gradient(circle at bottom left, #0f172a 0%, transparent 40%);
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            background: -webkit-linear-gradient(45deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(90deg, var(--primary), #4f46e5);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            border: none;
+            transition: transform 0.2s;
+        }
+
+        .btn-gradient:hover {
+            transform: scale(1.05);
+            color: white;
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+        }
+
+        .stats-con {
+            border-left: 2px solid var(--accent);
+            padding-left: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#"><span class="text-primary">Net</span>Guard AI</a>
+            <div class="d-flex">
+                <a href="index.html" class="btn btn-outline-light rounded-pill px-4 me-2">Launch App</a>
+                <a href="dashboard.html" class="btn btn-primary rounded-pill px-4">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate__animated animate__fadeInLeft">
+                    <span
+                        class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill mb-4">New:
+                        XGBoost Engine v2.0</span>
+                    <h1 class="hero-title mb-4">Intelligent Security for the Modern Web</h1>
+                    <p class="lead text-secondary-subtle mb-5">Detect phishing attacks, malicious URLs, and network
+                        intrusions in real-time using state-of-the-art Machine Learning.</p>
+                    <div class="d-flex gap-3">
+                        <a href="index.html" class="btn btn-gradient btn-lg">Start Scanning</a>
+                        <div class="stats-con d-none d-md-block">
+                            <h3 class="mb-0 fw-bold">99.8%</h3>
+                            <small class="text-secondary-subtle">Accuracy Rate</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 animate__animated animate__fadeInRight mt-5 mt-lg-0">
+                    <img src="https://cdni.iconscout.com/illustration/premium/thumb/cyber-security-illustration-download-in-svg-png-gif-file-formats--internet-network-access-protection-data-technology-pack-science-illustrations-4357288.png?f=webp"
+                        alt="Security Illustration" class="img-fluid floating-img">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="fs-1 mb-3">⚡</div>
+                    <h3>Real-Time Analysis</h3>
+                    <p class="text-secondary-subtle">Milliseconds to scan URLs and CSVs. Powered by XGBoost for
+                        lightning-fast inference.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="fs-1 mb-3">🛡️</div>
+                    <h3>Proactive Defense</h3>
+                    <p class="text-secondary-subtle">Blocks threats before they execute. Our heuristic engine detects
+                        zero-day phishing sites.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="fs-1 mb-3">📊</div>
+                    <h3>Visual Analytics</h3>
+                    <p class="text-secondary-subtle">Comprehensive dashboards to monitor threat landscapes and attack
+                        vectors.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>

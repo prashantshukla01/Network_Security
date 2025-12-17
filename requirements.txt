@@ -10,5 +10,5 @@ mlflow
 dagshub
 fastapi
 uvicorn
-
+xgboost
 ##-e .

@@ -22,6 +22,7 @@ from sklearn.ensemble import (
     GradientBoostingClassifier,
     RandomForestClassifier,
 )
+from xgboost import XGBClassifier
 import dagshub
 dagshub.init(repo_owner='prashantshukla01', repo_name='Network_Security', mlflow=True)
 
@@ -56,6 +57,7 @@ class ModelTrainer:
             "Gradient Boosting": GradientBoostingClassifier(verbose=1),
             "Logistic Regression": LogisticRegression(verbose=1),
             "AdaBoost": AdaBoostClassifier(),
+            "XGBoost": XGBClassifier(verbose=1, eval_metric='logloss'),
         }
         params = {
             "Decision Tree": {
@@ -81,6 +83,11 @@ class ModelTrainer:
             "AdaBoost":{
                 'learning_rate':[.1,.01,.001],
                 'n_estimators': [8,16,32,64,128,256]
+            },
+            "XGBoost":{
+                'learning_rate': [.1, .01, .05, .001],
+                'n_estimators': [8, 16, 32, 64, 128, 256],
+                'max_depth': [3, 5, 7, 10]
             }
             
         }
