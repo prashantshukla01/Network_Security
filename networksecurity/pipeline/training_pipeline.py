@@ -36,7 +36,7 @@ import sys
 class TrainingPipeline:
     def __init__(self):
         self.training_pipeline_config=TrainingPipelineConfig()
-        self.s3_sync = S3Sync()
+        self.s3_sync = S3Sync(enabled=True)
 
     def start_data_ingestion(self):
         try:

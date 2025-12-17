@@ -34,12 +34,22 @@ class DataIngestion:
         try:
             database_name = self.data_ingestion_config.database_name
             collection_name = self.data_ingestion_config.collection_name
-            self.mongo_client = pymongo.MongoClient(MONGO_DB_URL)
-            collection = self.mongo_client[database_name][collection_name]
             
-            df = pd.DataFrame(list(collection.find()))
-            if "_id" in df.columns.to_list():
-                df = df.drop(columns=["_id"], axis=1)
+            try:
+                self.mongo_client = pymongo.MongoClient(MONGO_DB_URL)
+                collection = self.mongo_client[database_name][collection_name]
+                
+                df = pd.DataFrame(list(collection.find()))
+                if "_id" in df.columns.to_list():
+                    df = df.drop(columns=["_id"], axis=1)
+            except Exception as e:
+                logging.warning(f"Failed to connect to MongoDB: {e}. Falling back to local CSV.")
+                csv_path = "Network_Data/phisingData.csv"
+                if os.path.exists(csv_path):
+                    logging.info(f"Reading data from local compressed CSV: {csv_path}")
+                    df = pd.read_csv(csv_path)
+                else:
+                    raise NetworkSecurityException(f"MongoDB failed and local file {csv_path} not found.", sys)
                 
             df.replace({"na": np.nan}, inplace=True)
             return df 

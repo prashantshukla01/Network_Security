@@ -1,2 +1,11 @@
-venv
+venv/
 .env
+__pycache__/
+*.pyc
+.DS_Store
+Artifacts/
+logs/
+final_model/
+catboost_info/
+mlruns/
+.pytest_cache/

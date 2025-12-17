@@ -86,7 +86,7 @@ class DataValidation:
                 d2 = current_df[column]
                 is_sample_dist = ks_2samp(d1 , d2)
                 if threshold <= is_sample_dist.pvalue:
-                    is_found = True
+                    is_found = False
                     
                 else :
                     is_found = True

@@ -20,9 +20,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import (
     AdaBoostClassifier,
     GradientBoostingClassifier,
-    RandomForestClassifier 
-    )
-
+    RandomForestClassifier,
+)
 import dagshub
 dagshub.init(repo_owner='prashantshukla01', repo_name='Network_Security', mlflow=True)
 

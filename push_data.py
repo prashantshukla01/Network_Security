@@ -70,6 +70,13 @@ class NetworkDataExtract():
             self.collection = self.database[self.collection]
             
             print(f"Inserting {len(self.records)} records...")
+            
+            # Check if collection has data and drop it to avoid duplicates (User Request)
+            if self.collection.count_documents({}) > 0:
+                print("Collection already exists. Dropping to ensure unique dataset...")
+                self.collection.drop()
+                print("Collection dropped.")
+                
             self.collection.insert_many(self.records)
             print("Data inserted successfully!")
             return(len(self.records))

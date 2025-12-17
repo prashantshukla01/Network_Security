@@ -25,13 +25,18 @@ from networksecurity.utils.main_utils.utils import load_object
 from networksecurity.utils.ml_utils.model.estimator import NetworkModel
 
 
-client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
-
 from networksecurity.constant.training_pipeline import DATA_INGESTION_COLLECTION_NAME
 from networksecurity.constant.training_pipeline import DATA_INGESTION_DATABASE_NAME
 
-database = client[DATA_INGESTION_DATABASE_NAME]
-collection = database[DATA_INGESTION_COLLECTION_NAME]
+try:
+    client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
+    database = client[DATA_INGESTION_DATABASE_NAME]
+    collection = database[DATA_INGESTION_COLLECTION_NAME]
+except Exception as e:
+    print(f"Error connecting to MongoDB: {e}")
+    client = None
+    database = None
+    collection = None
 
 app = FastAPI()
 origins = ["*"]
@@ -49,8 +54,8 @@ templates = Jinja2Templates(directory="./templates")
 
 
 @app.get("/", tags=["authentication"])
-async def index():
-    return RedirectResponse(url="/docs")
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/train")
 async def train_route():
