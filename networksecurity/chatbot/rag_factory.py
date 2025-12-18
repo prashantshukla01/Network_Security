@@ -1,109 +1,73 @@
 import os
-import faiss
-from langchain_community.vectorstores import FAISS
-from langchain_community.docstore.in_memory import InMemoryDocstore
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.documents import Document
+import google.generativeai as genai
 
 class RAGFactory:
     def __init__(self):
         self.api_key = os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
-            print("WARNING: GOOGLE_API_KEY not found. RAG will not work.")
-            self.rag_chain = None
+            print("WARNING: GOOGLE_API_KEY not found. Chatbot will not work.")
+            self.model = None
             return
 
-        # 1. Initialize Embeddings (Zero-Bloat Cloud Embeddings)
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        try:
+            genai.configure(api_key=self.api_key)
+            # Use Gemini 1.5 Flash for speed and large context window
+            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            self.chat_session = None
+            self.context_text = ""
+            self.init_error = None
+            print("RAG System: Initialized with Google Gemini SDK (Native).")
+        except Exception as e:
+            self.init_error = f"Initialization Failed: {str(e)}"
+            self.model = None
+            print(f"CRITICAL ERROR in RAG init: {e}")
 
-        # 2. Initialize Vector Store (FAISS - In-Memory/Local)
-        # We start with an empty index and populate it via ingest()
-        index = faiss.IndexFlatL2(768) # 768 is dim for embedding-001
-        self.vector_store = FAISS(
-            embedding_function=self.embeddings,
-            index=index,
-            docstore=InMemoryDocstore(),
-            index_to_docstore_id={}
-        )
-
-        # 3. Initialize LLM (Gemini Flash - Fast & Cheap)
-        self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
-
-        # 4. Define Prompt
-        self.template = """Answer the question based only on the following context:
-        {context}
-
-        Question: {question}
-        """
-        self.prompt = ChatPromptTemplate.from_template(self.template)
-        
-        # 5. Initialize Cache
-        self.cache = {}
-        self.MAX_CACHE_SIZE = 100
-        
-        self.rag_chain = None
-    
     def ingest_data(self, texts: list[str]):
         """
-        Ingests a list of text strings into the vector store.
+        Ingests text by concatenating it into a single context string.
+        Gemini 1.5 Flash has a 1M token context window, so we can pass the whole README.
         """
         print(f"DEBUG: ingest_data called with {len(texts)} texts.")
         if not texts:
             return
         
         try:
-            docs = [Document(page_content=t) for t in texts]
-            print("DEBUG: Documents created.")
+            # Combine all texts into one large context block
+            self.context_text = "\n\n".join(texts)
             
-            # This step calls the Embedding API
-            self.vector_store.add_documents(docs)
-            print("DEBUG: Documents added to Vector Store.")
+            # Initialize a chat session with the system instruction (context)
+            # We treat the context as a "system prompt" or initial user message for grounding
+            history = [
+                {
+                    "role": "user",
+                    "parts": [f"System Context:\n{self.context_text}\n\nYou are a helpful assistant for the Network Security project described above. Answer questions based only on this context."]
+                },
+                {
+                    "role": "model",
+                    "parts": ["Understood. I will answer questions based on the provided Network Security project context."]
+                }
+            ]
             
-            # Re-build chain after ingestion
-            retriever = self.vector_store.as_retriever()
-            self.rag_chain = (
-                {"context": retriever | self._format_docs, "question": RunnablePassthrough()}
-                | self.prompt
-                | self.llm
-                | StrOutputParser()
-            )
-            print(f"RAG System: Ingested {len(texts)} documents. Chain Ready.")
-            self.init_error = None
+            self.chat_session = self.model.start_chat(history=history)
+            print("DEBUG: Chat session started with context.")
+            
         except Exception as e:
-            error_msg = str(e)
-            if "RESOURCE_EXHAUSTED" in error_msg or "429" in error_msg:
-                self.init_error = "Google API Quota Limit. Please try again in a few minutes."
-            else:
-                self.init_error = f"Initialization Failed: {error_msg}"
-            print(f"CRITICAL ERROR in ingest_data: {e}")
-
-    def _format_docs(self, docs):
-        return "\n\n".join(doc.page_content for doc in docs)
+            print(f"Error in ingest_data: {e}")
+            self.init_error = str(e)
 
     def get_response(self, question: str) -> str:
         if self.init_error:
             return f"System Unavailable: {self.init_error}"
-        if not self.rag_chain:
+        if not self.model:
             return "System is initializing... please wait."
             
-        # Check Cache
-        if question in self.cache:
-            print(f"RAG Cache HIT: {question}")
-            return self.cache[question]
-            
         try:
-             response = self.rag_chain.invoke(question)
-             
-             # Update Cache
-             if len(self.cache) >= self.MAX_CACHE_SIZE:
-                 # Remove oldest item (Python 3.7+ dicts preserve insertion order)
-                 self.cache.pop(next(iter(self.cache)))
-             
-             self.cache[question] = response
-             return response
+            if not self.chat_session:
+                # Fallback if no data was ingested yet, just start a blank chat
+                self.chat_session = self.model.start_chat(history=[])
+                
+            response = self.chat_session.send_message(question)
+            return response.text
         except Exception as e:
             return f"Error generating response: {e}"
 
