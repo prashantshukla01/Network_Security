@@ -1,5 +1,5 @@
 python-dotenv
-pandas 
+# pandas 
 numpy
 
 pymongo

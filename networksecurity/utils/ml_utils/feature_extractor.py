@@ -1,4 +1,4 @@
-import pandas as pd
+# import pandas as pd
 import numpy as np
 from urllib.parse import urlparse
 import ipaddress
@@ -54,8 +54,7 @@ class FeatureExtractor:
             return 0
         return 1
 
-    def extract_features(self, url: str) -> pd.DataFrame:
-
+    def extract_features(self, url: str) -> np.ndarray:
         data = {}
         
         # 1. IP Address handling
@@ -108,14 +107,10 @@ class FeatureExtractor:
         else:
             data['SSLfinal_State'] = -1
             
-        # --- Simplified heuristics for features requiring deep content analysis ---
-        # For a full implementation, we'd need to fetch the HTML content.
-        # For this version, we will default to "Neutral/Safe" (0 or 1) for content-based checks to avoid false positives 
-        # unless we can easily establish otherwise.
-
-        data['Domain_registeration_length'] = 0 # Cannot check without whois
-        data['Favicon'] = 0 # Cannot check without scraping
-        data['port'] = 1 # Assume standard port
+        # --- Simplified heuristics ---
+        data['Domain_registeration_length'] = 0 
+        data['Favicon'] = 0 
+        data['port'] = 1 
         
         # HTTPS token in domain
         data['HTTPS_token'] = -1 if 'https' in urlparse(url).netloc else 1
@@ -127,7 +122,6 @@ class FeatureExtractor:
         data['Submitting_to_email'] = 1
         
         # Abnormal URL (if hostname not in URL)
-        # Simplified check
         data['Abnormal_URL'] = 1
         
         # IMPROVED HEURISTICS: Check for suspicious keywords
@@ -135,27 +129,22 @@ class FeatureExtractor:
         url_lower = url.lower()
         for keyword in suspicious_keywords:
              if keyword in url_lower and 'google' not in url_lower and 'microsoft' not in url_lower:
-                  # Simple whitelist for major providers to avoid flagging "google.com/accounts/login" as false positive
-                  # But for unknown domains, these keywords are suspicous.
                   data['Abnormal_URL'] = -1
                   break
 
         data['Redirect'] = 0
-
         data['on_mouseover'] = 1
         data['RightClick'] = 1
         data['popUpWidnow'] = 1
         data['Iframe'] = 1
-        data['age_of_domain'] = 0 # Requires Whois
-        data['DNSRecord'] = 0 # Requires Whois
-        data['web_traffic'] = 0 # Requires Alexa/SimilarWeb API
+        data['age_of_domain'] = 0 
+        data['DNSRecord'] = 0 
+        data['web_traffic'] = 0 
         data['Page_Rank'] = 0
         data['Google_Index'] = 0
         data['Links_pointing_to_page'] = 0
         data['Statistical_report'] = 0
 
-        # Create DataFrame
-        df = pd.DataFrame([data])
-        # Ensure correct column order
-        df = df[self.columns]
-        return df
+        # Create Numpy Array (Ordered by self.columns)
+        features_list = [data[col] for col in self.columns]
+        return np.array(features_list).reshape(1, -1)

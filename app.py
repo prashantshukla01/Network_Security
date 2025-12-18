@@ -23,7 +23,10 @@ from uvicorn import run as app_run
 import secrets
 from fastapi.responses import Response
 from starlette.responses import RedirectResponse
-import pandas as pd
+# import pandas as pd
+import csv
+import io
+import numpy as np
 
 from networksecurity.utils.main_utils.utils import load_object
 from networksecurity.utils.ml_utils.feature_extractor import FeatureExtractor
@@ -157,23 +160,51 @@ async def train_route():
 @app.post("/predict")
 async def predict_route(request: Request,file: UploadFile = File(...)):
     try:
-        df=pd.read_csv(file.file)
-        #print(df)
-        df=pd.read_csv(file.file)
-        #print(df)
+        # Read CSV file
+        content = await file.read()
+        csv_str = content.decode('utf-8')
+        
+        # Parse CSV to list of lists
+        csv_reader = csv.reader(io.StringIO(csv_str))
+        header = next(csv_reader) # Skip header
+        rows = list(csv_reader)
+        
+        # Create Numpy Array for prediction (Assume all columns are features)
+        # Convert strings to floats
+        data_arr = np.array(rows, dtype=float)
         
         if global_network_model is None:
              raise Exception("Model not loaded properly on server.")
              
-        print(df.iloc[0])
-        y_pred = global_network_model.predict(df)
-        print(y_pred)
-        df['predicted_column'] = y_pred
-        print(df['predicted_column'])
-        #df['predicted_column'].replace(-1, 0)
-        #return df.to_json()
-        df.to_csv('prediction_output/output.csv')
-        table_html = df.to_html(classes='table table-striped')
+        y_pred = global_network_model.predict(data_arr)
+        
+        # Prepare output data (add prediction column)
+        output_rows = []
+        for i, row in enumerate(rows):
+            row.append(str(y_pred[i])) # Add prediction
+            output_rows.append(row)
+            
+        header.append("predicted_column")
+        
+        # Save to CSV string/file
+        output_io = io.StringIO()
+        csv_writer = csv.writer(output_io)
+        csv_writer.writerow(header)
+        csv_writer.writerows(output_rows)
+        
+        # Manually save to file if needed (or just skip saving to disk on Vercel)
+        os.makedirs('prediction_output', exist_ok=True)
+        with open('prediction_output/output.csv', 'w') as f:
+            f.write(output_io.getvalue())
+        
+        # Generate HTML Table manually
+        table_html = '<table class="table table-striped">'
+        table_html += '<thead><tr>' + ''.join([f'<th>{h}</th>' for h in header]) + '</tr></thead>'
+        table_html += '<tbody>'
+        # Limit to 10 rows for display
+        for row in output_rows[:10]:
+            table_html += '<tr>' + ''.join([f'<td>{cell}</td>' for cell in row]) + '</tr>'
+        table_html += '</tbody></table>'
         
         # Save to history
         import datetime
