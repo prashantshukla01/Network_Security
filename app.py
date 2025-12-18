@@ -35,6 +35,21 @@ from networksecurity.utils.ml_utils.model.estimator import NetworkModel
 from networksecurity.constant.training_pipeline import DATA_INGESTION_COLLECTION_NAME
 from networksecurity.constant.training_pipeline import DATA_INGESTION_DATABASE_NAME
 
+# --- GLOBAL MODEL LOADING (Optimization) ---
+# Load model once at startup to avoid 26MB overhead per request
+try:
+    print("Loading AI Models...")
+    preprocesor = load_object("final_model/preprocessor.pkl")
+    final_model = load_object("final_model/model.pkl")
+    # Create global model instance
+    global_network_model = NetworkModel(preprocessor=preprocesor, model=final_model)
+    print("AI Models Loaded Successfully.")
+except Exception as e:
+    print(f"CRITICAL: Model loading failed. Prediction endpoints will error. {e}")
+    global_network_model = None
+
+
+
 try:
     client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
     database = client[DATA_INGESTION_DATABASE_NAME]
@@ -143,11 +158,14 @@ async def predict_route(request: Request,file: UploadFile = File(...)):
     try:
         df=pd.read_csv(file.file)
         #print(df)
-        preprocesor=load_object("final_model/preprocessor.pkl")
-        final_model=load_object("final_model/model.pkl")
-        network_model = NetworkModel(preprocessor=preprocesor,model=final_model)
+        df=pd.read_csv(file.file)
+        #print(df)
+        
+        if global_network_model is None:
+             raise Exception("Model not loaded properly on server.")
+             
         print(df.iloc[0])
-        y_pred = network_model.predict(df)
+        y_pred = global_network_model.predict(df)
         print(y_pred)
         df['predicted_column'] = y_pred
         print(df['predicted_column'])
@@ -193,9 +211,11 @@ async def predict_url_route(request: URLRequest):
         df = extractor.extract_features(url)
         
         # Load model and predict
-        preprocesor = load_object("final_model/preprocessor.pkl")
-        final_model = load_object("final_model/model.pkl")
-        network_model = NetworkModel(preprocessor=preprocesor, model=final_model)
+        if global_network_model is None:
+             raise Exception("Model not loaded properly on server.")
+             
+        # network_model = NetworkModel(preprocessor=preprocesor, model=final_model) # REPLACED WITH GLOBAL
+        
         
         # Phishing Override Check (API + Heuristics)
         phishtank_result = extractor.check_phishtank(url)
@@ -204,7 +224,7 @@ async def predict_url_route(request: URLRequest):
             y_pred = [-1] # Confirm Phishing
             print("PhishTank Detected Phishing!")
         else:
-            y_pred = network_model.predict(df)
+            y_pred = global_network_model.predict(df)
         
         # Also check heuristics from extracted features if model says Legitimate but heuristics are suspicious
         # (This logic is partly inside FeatureExtractor but we need to respect the ML Model generally, 
