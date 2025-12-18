@@ -1,0 +1,9 @@
+Artifacts
+venv
+Network_Data
+.git
+__pycache__
+*.pyc
+.env
+logs
+final_model/preprocessor.pkl
