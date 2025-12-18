@@ -6,8 +6,8 @@ pymongo
 certifi
 scikit-learn
 pyaml
-mlflow
-dagshub
+# mlflow
+# dagshub
 fastapi
 uvicorn
 xgboost

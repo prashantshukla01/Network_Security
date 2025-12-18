@@ -11,7 +11,7 @@ print(mongo_db_url)
 import pymongo
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.logging.logger import logging
-from networksecurity.pipeline.training_pipeline import TrainingPipeline
+# from networksecurity.pipeline.training_pipeline import TrainingPipeline  # Moved to train_route
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, File, UploadFile, Request, Form, Depends, HTTPException, status
@@ -147,6 +147,7 @@ async def get_history(request: Request):
 @app.get("/train")
 async def train_route():
     try:
+        from networksecurity.pipeline.training_pipeline import TrainingPipeline
         train_pipeline=TrainingPipeline()
         train_pipeline.run_pipeline()
         return Response("Training is successful")
