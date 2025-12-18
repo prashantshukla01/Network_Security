@@ -1,21 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Data Table</title>
+    <meta charset="UTF-8">
+    <title>Analysis Results | SecureNet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
     <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
+        .table-dark-custom {
+            --bs-table-bg: #1e293b;
+            --bs-table-color: #94a3b8;
+            --bs-table-border-color: rgba(255, 255, 255, 0.1);
         }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
+
+        th {
+            color: var(--accent) !important;
         }
     </style>
 </head>
-<body>
-    <h2>Predicted Data</h2>
-    {{ table | safe }}
+
+<body class="p-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-white">Analysis Results</h2>
+            <a href="/" class="btn btn-outline-light">← Back to Dashboard</a>
+        </div>
+
+        <div class="card p-3 overflow-auto" style="max-height: 80vh;">
+            <div class="table-responsive">
+                <!-- Dataframe HTML table will be injected here. We need to wrap it or target classes if possible via pandas, but simple CSS overrides work too -->
+                <style>
+                    table.table {
+                        color: #e2e8f0;
+                        background-color: #1e293b;
+                    }
+
+                    thead {
+                        border-bottom: 2px solid var(--accent);
+                    }
+                </style>
+                {{ table | safe }}
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>

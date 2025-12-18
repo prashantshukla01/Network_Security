@@ -12,3 +12,8 @@ fastapi
 uvicorn
 xgboost
 ##-e .
+# RAG Chatbot
+langchain
+langchain-community
+langchain-google-genai
+faiss-cpu

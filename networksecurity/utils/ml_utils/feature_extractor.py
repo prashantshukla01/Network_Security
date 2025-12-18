@@ -3,6 +3,10 @@ import numpy as np
 from urllib.parse import urlparse
 import ipaddress
 import re
+import requests
+import os
+import base64
+from urllib.parse import urlparse, quote
 
 class FeatureExtractor:
     def __init__(self):
@@ -16,7 +20,42 @@ class FeatureExtractor:
             'Statistical_report'
         ]
 
+    def check_phishtank(self, url: str) -> int:
+        """
+        Interacts with the PhishTank API (or simple public check) to verify if a URL is a known phishing site.
+        Returns: 
+           -1 (Phishing - Found in database)
+            0 (Unknown/Error)
+            1 (Legitimate - Not found)
+        """
+        try:
+            # Using the checkurl method. API key recommended for higher limits.
+            api_key = os.getenv("PHISHTANK_API_KEY") 
+            params = {
+                'format': 'json',
+                'url': url
+            }
+            if api_key:
+                params['app_key'] = api_key
+            
+            # Note: PhishTank checkurl is a POST request typically, but some endpoints allow GET.
+            # Official docs say POST to http://checkurl.phishtank.com/checkurl/
+            response = requests.post("http://checkurl.phishtank.com/checkurl/", data=params, timeout=5)
+            
+            if response.status_code == 200:
+                result = response.json()
+                # PhishTank JSON format: {'results': {'in_database': True, 'valid': True}}
+                if result.get('results', {}).get('in_database'):
+                    if result['results']['valid']:
+                        return -1 # It IS a valid phishing site
+                return 1 # Not in database or not valid anymore
+        except Exception as e:
+            print(f"PhishTank API Error: {e}")
+            return 0
+        return 1
+
     def extract_features(self, url: str) -> pd.DataFrame:
+
         data = {}
         
         # 1. IP Address handling
@@ -91,7 +130,18 @@ class FeatureExtractor:
         # Simplified check
         data['Abnormal_URL'] = 1
         
+        # IMPROVED HEURISTICS: Check for suspicious keywords
+        suspicious_keywords = ['login', 'signin', 'verify', 'update', 'account', 'banking', 'secure', 'confirm', 'wallet']
+        url_lower = url.lower()
+        for keyword in suspicious_keywords:
+             if keyword in url_lower and 'google' not in url_lower and 'microsoft' not in url_lower:
+                  # Simple whitelist for major providers to avoid flagging "google.com/accounts/login" as false positive
+                  # But for unknown domains, these keywords are suspicous.
+                  data['Abnormal_URL'] = -1
+                  break
+
         data['Redirect'] = 0
+
         data['on_mouseover'] = 1
         data['RightClick'] = 1
         data['popUpWidnow'] = 1
